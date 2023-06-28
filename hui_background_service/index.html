@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Table Builder</title>
+    <style>
+      .container {
+        display: flex;
+      }
+
+      .form-container {
+        flex: 1;
+      }
+
+      .diagram-container {
+        flex: 1;
+        padding: 20px;
+        border: 1px solid #ccc;
+        min-height: 200px;
+      }
+
+      .table-diagram {
+        position: relative;
+        background-color: #f2f2f2;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+        cursor: move;
+      }
+
+      .table-diagram h3 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .edit-button {
+        margin-left: 5px;
+      }
+
+      .delete-button {
+        margin-left: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Table Builder</h2>
+    <div class="container">
+      <div class="form-container">
+        <label for="tableName">Nama Tabel:</label>
+        <input type="text" id="tableName" />
+        <br />
+
+        <label for="fieldName">Nama Field:</label>
+        <input type="text" id="fieldName" />
+
+        <label for="fieldType">Tipe Data:</label>
+        <select id="fieldType">
+          <option value="text">Text</option>
+          <option value="number">Number</option>
+          <option value="date">Date</option>
+        </select>
+        <br />
+
+        <button onclick="addTable()">Tambah Tabel</button>
+      </div>
+
+      <div class="diagram-container" id="diagramContainer"></div>
+    </div>
+
+    <script>
+      let tables = [];
+
+      function addTable() {
+        const tableName = document.getElementById("tableName").value;
+        const fieldName = document.getElementById("fieldName").value;
+        const fieldType = document.getElementById("fieldType").value;
+
+        if (tableName.trim() === "" || fieldName.trim() === "") {
+          alert("Nama Tabel dan Nama Field tidak boleh kosong!");
+          return;
+        }
+
+        let table = tables.find((t) => t.name === tableName);
+        if (!table) {
+          table = {
+            name: tableName,
+            fields: [],
+          };
+          tables.push(table);
+        }
+
+        const field = {
+          name: fieldName,
+          type: fieldType,
+        };
+        table.fields.push(field);
+
+        document.getElementById("tableName").value = "";
+        document.getElementById("fieldName").value = "";
+        renderDiagram();
+      }
+
+      function renderDiagram() {
+        const diagramContainer = document.getElementById("diagramContainer");
+        diagramContainer.innerHTML = "";
+
+        tables.forEach((table, index) => {
+          const tableDiagram = document.createElement("div");
+          tableDiagram.classList.add("table-diagram");
+          tableDiagram.setAttribute("id", `table-${index}`);
+          tableDiagram.setAttribute("draggable", true);
+          tableDiagram.addEventListener("dragstart", handleDragStart);
+
+          const tableTitle = document.createElement("h3");
+          tableTitle.innerText = table.name;
+          tableDiagram.appendChild(tableTitle);
+
+          const editButton = document.createElement("button");
+          editButton.innerText = "Edit";
+          editButton.classList.add("edit-button");
+          editButton.addEventListener("click", () => {
+            const newName = prompt("Masukkan nama tabel baru:", table.name);
+            if (newName && newName.trim() !== "") {
+              table.name = newName.trim();
+              renderDiagram();
+            }
+          });
+          tableDiagram.appendChild(editButton);
+          const deleteButton = document.createElement("button");
+          deleteButton.innerText = "Hapus";
+          deleteButton.classList.add("delete-button");
+          deleteButton.addEventListener("click", () => {
+            tables.splice(index, 1);
+            renderDiagram();
+          });
+          tableDiagram.appendChild(deleteButton);
+
+          diagramContainer.appendChild(tableDiagram);
+        });
+      }
+
+      let dragSrcElement = null;
+
+      function handleDragStart(event) {
+        dragSrcElement = this;
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/html", this.outerHTML);
+      }
+
+      function handleDragOver(event) {
+        if (event.preventDefault) {
+          event.preventDefault();
+        }
+        event.dataTransfer.dropEffect = "move";
+        return false;
+      }
+
+      function handleDrop(event) {
+        if (event.stopPropagation) {
+          event.stopPropagation();
+        }
+
+        if (dragSrcElement !== this) {
+          this.parentNode.removeChild(dragSrcElement);
+          const dropHTML = event.dataTransfer.getData("text/html");
+          this.insertAdjacentHTML("beforebegin", dropHTML);
+          const newTable = this.previousSibling;
+          newTable.addEventListener("dragstart", handleDragStart);
+        }
+
+        return false;
+      }
+
+      const tableDiagrams = document.querySelectorAll(".table-diagram");
+      tableDiagrams.forEach((tableDiagram) => {
+        tableDiagram.addEventListener("dragover", handleDragOver);
+        tableDiagram.addEventListener("drop", handleDrop);
+      });
+    </script>
+  </body>
+</html>

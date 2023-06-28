@@ -8,7 +8,6 @@ class Get {
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   static get currentContext {
-    
     return navigatorKey.currentState?.context;
   }
 
@@ -52,6 +51,7 @@ class Get {
 extension ChangeNotifierExtension on State {
   update() {
     if (mounted) {
+      // ignore: invalid_use_of_protected_member
       setState(() {});
     }
   }

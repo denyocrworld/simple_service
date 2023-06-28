@@ -4,13 +4,14 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:path_provider/path_provider.dart';
 
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
-
   Timer.periodic(const Duration(seconds: 1), (timer) async {
-    final File file = File('data.txt');
+    var path = await getTemporaryDirectory();
+    final File file = File('${path.path}/data.txt');
     file.writeAsStringSync(Random().nextInt(1000).toString());
   });
 }
